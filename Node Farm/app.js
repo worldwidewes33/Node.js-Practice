@@ -17,17 +17,19 @@ const productCards = products.map((product) => {
 });
 
 const server = http.createServer((req, res) => {
-  const url = req.url;
-  if (url === "/overview" || url === "/") {
+  const baseURL = `http://${req.headers.host}`;
+  const url = new URL(req.url, baseURL);
+
+  if (url.pathname === "/overview" || url.pathname === "/") {
     const overview = overviewTemplate.replaceAll(
       /{%PRODUCT_CARDS%}/g,
-      productCards.reduce((accum, curr) => accum + curr, "")
+      productCards.join("")
     );
     res.setHeader("Content-type", "text/html");
     res.end(overview);
-  } else if (url === "/products") {
-    res.end("This is the PRODUCTS");
-  } else if (url === "/api") {
+  } else if (url.pathname === "/product") {
+    res.end("This is the PRODUCT");
+  } else if (url.pathname === "/api") {
     res.writeHead(200, { "Content-type": "application/json" });
     res.end(data);
   } else {

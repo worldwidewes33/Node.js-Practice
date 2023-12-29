@@ -1,6 +1,7 @@
 const http = require("http");
 const fs = require("fs");
 const data = fs.readFileSync(`${__dirname}/dev-data/data.json`);
+const products = JSON.parse(data);
 
 // Templates
 const cardTemplate = fs
@@ -10,11 +11,19 @@ const cardTemplate = fs
 const overviewTemplate = fs
   .readFileSync(`${__dirname}/templates/template-overview.html`)
   .toString();
-const products = JSON.parse(data);
 
-const productCards = products.map((product) => {
-  return replaceTemplate(cardTemplate, product);
-});
+const productTemplate = fs
+  .readFileSync(`${__dirname}/templates/template-product.html`)
+  .toString();
+
+// HTML Arrays
+const productCards = products.map((product) =>
+  replaceTemplate(cardTemplate, product)
+);
+
+const productDetailPages = products.map((product) =>
+  replaceTemplate(productTemplate, product)
+);
 
 const server = http.createServer((req, res) => {
   const baseURL = `http://${req.headers.host}`;
@@ -27,8 +36,10 @@ const server = http.createServer((req, res) => {
     );
     res.setHeader("Content-type", "text/html");
     res.end(overview);
-  } else if (url.pathname === "/product") {
-    res.end("This is the PRODUCT");
+  } else if (url.pathname === "/product" && url.search !== "") {
+    const id = url.searchParams.get("id");
+    res.setHeader("Content-type", "text/html");
+    res.end(productDetailPages[id]);
   } else if (url.pathname === "/api") {
     res.writeHead(200, { "Content-type": "application/json" });
     res.end(data);
